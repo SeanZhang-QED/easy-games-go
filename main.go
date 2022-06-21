@@ -13,7 +13,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-    r.Handle("/game", http.HandlerFunc(getGameHandler)).Methods("Get")
+    r.Handle("/game", http.HandlerFunc(getGameHandler)).Methods("GET", "OPTIONS")
 
     log.Fatal(http.ListenAndServe(":5000", r))
 }
