@@ -6,6 +6,7 @@ import (
     "net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/SeanZhang-QED/easy-games-go/handlers"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-    r.Handle("/game", http.HandlerFunc(getGameHandler)).Methods("GET", "OPTIONS")
+    r.Handle("/game", http.HandlerFunc(handlers.GetGameHandler)).Methods("GET", "OPTIONS")
 
-    log.Fatal(http.ListenAndServe(":5000", r))
+    log.Fatal(http.ListenAndServe(":8080", r))
 }
