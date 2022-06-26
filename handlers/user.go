@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	// "time"
 
 	"github.com/SeanZhang-QED/easy-games-go/models"
 	"github.com/SeanZhang-QED/easy-games-go/session"
@@ -93,7 +93,6 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Failed to read user from MongoDB %v\n", err)
 		return
 	}
-	// fail to sign in
 	if !exists {
 		http.Error(w, "User doesn't exists or wrong password", http.StatusUnauthorized)
 		fmt.Printf("User doesn't exists or wrong password\n")
@@ -103,15 +102,34 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Step 2: handle seesion cookie
 	sID := uuid.NewV4()
 	ck := &http.Cookie{
-		Name:  "sessionId",
-		Value: sID.String(),
+		Name:   "sessionId",
+		Value:  sID.String(),
 		MaxAge: session.MAX_AGE,
 	}
 	http.SetCookie(w, ck)
-	session.Sessions[ck.Value] = models.Session{Email: credentials.Email, LastActivity: time.Now()}
-	session.Show()
-
-	// Step 3: return
+	// step 3: manage session collection on mongoDB
+	ss, err := session.SearchSessionByEmail(uh.session, credentials.Email)
+	if err != nil {
+		http.Error(w, "Failed to fetch session from MongoDB", http.StatusInternalServerError)
+		fmt.Println("Fail to fetch session from mongoDB")
+		return
+	}
+	if len(ss) == 0 {
+		// insert
+		err := session.InsertSessionBySId(uh.session, credentials.Email, sID.String())
+		if err != nil {
+			http.Error(w, "Fail to insert session from mongoDB", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// update
+		err := session.UpdateSessionById(uh.session, ss[0].Id, sID.String())
+		if err != nil {
+			http.Error(w, "Fail to insert session from mongoDB", http.StatusInternalServerError)
+			return
+		}
+	}
+	// Step 4: return
 	w.WriteHeader(http.StatusOK) // 200
 	fmt.Printf("User Login successfully: %s.\n", credentials.Email)
 }
@@ -126,14 +144,18 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exist, userEmail := session.AlreadyLoggedIn(w, r)
-	if !exist {
-		w.WriteHeader(http.StatusBadRequest) // 400
+	loggedSession, err := session.AlreadyLoggedIn(w, r, uh.session)
+	if err != nil {
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
+	} else if loggedSession == (models.Session{}) {
+		http.Error(w, "Haven't logged in", http.StatusBadRequest)
 		return
 	}
+
 	ck, _ := r.Cookie("sessionId")
 	// delete the session
-	delete(session.Sessions, ck.Value)
+	session.DeleteSessionBySId(uh.session, ck.Value)
 	// remove the cookie
 	ck = &http.Cookie{
 		Name:   "sessionId",
@@ -142,7 +164,7 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, ck)
 	w.WriteHeader(http.StatusOK) // 200
-	fmt.Printf("User Logout successfully: %s.\n", userEmail)
+	fmt.Printf("User Logout successfully: %s.\n", loggedSession.Email)
 }
 
 func (uh UserHandler) addUser(u *models.User) (bool, error) {

@@ -2,39 +2,71 @@ package session
 
 import (
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/SeanZhang-QED/easy-games-go/models"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"net/http"
 )
 
 const MAX_AGE = 1 * 60 * 60
-// var Users = map[string]models.User{}       // user ID, user
-var Sessions = map[string]models.Session{} // session ID, session
-var LastCleaned time.Time = time.Now()
 
-func AlreadyLoggedIn(w http.ResponseWriter, req *http.Request) (bool, string) {
+func AlreadyLoggedIn(w http.ResponseWriter, req *http.Request, ms *mgo.Session) (models.Session, error) {
 	ck, err := req.Cookie("sessionId")
 	if err != nil {
-		return false, ""
+		fmt.Println("Fail to read cookie from http request.")
+		return models.Session{}, err
 	}
-	s, ok := Sessions[ck.Value]
-	if !ok {
-		return false, ""		
+
+	var s models.Session
+	err = ms.DB("easy-games-db").C("sessions").Find(bson.M{"session_id": ck.Value}).One(&s)
+
+	if err != nil {
+		fmt.Println("Fail to fetch session from mongoDB")
+		return models.Session{}, err
 	}
-	// refresh session
-	s.LastActivity = time.Now()
-	Sessions[ck.Value] = s
+
 	ck.MaxAge = MAX_AGE
 	http.SetCookie(w, ck)
-	return true, s.Email
+	return s, nil
 }
 
-// for demonstration purposes
-func Show() {
-	fmt.Println("***sessionID***")
-	for k, v := range Sessions {
-		fmt.Println(k, v.Email)
+func SearchSessionByEmail(ms *mgo.Session, email string) ([]models.Session, error) {
+	var ss []models.Session
+	err := ms.DB("easy-games-db").C("sessions").Find(bson.M{"email": email}).All(&ss)
+
+	if err != nil {
+		fmt.Println("Fail to fetch session from mongoDB")
+		return nil, err
 	}
-	fmt.Println("***sessionID***")
+	return ss, nil
+}
+
+func InsertSessionBySId(ms *mgo.Session, email string, sId string) error {
+	var s models.Session
+	s.Id = bson.NewObjectId()
+	s.Email = email
+	s.SessionId = sId
+	if err := ms.DB("easy-games-db").C("sessions").Insert(s); err != nil {
+		fmt.Println("Fail to insert session from mongoDB")
+		return err
+	}
+	return nil
+}
+
+func UpdateSessionById(ms *mgo.Session, oid bson.ObjectId, sId string) error {
+
+	if err := ms.DB("easy-games-db").C("sessions").UpdateId(oid, bson.M{"$set": bson.M{"session_id": sId}}); err != nil {
+		fmt.Println("Fail to update session from mongoDB")
+		return err
+	}
+
+	return nil
+}
+
+func DeleteSessionBySId(ms *mgo.Session, sId string) error {
+	if _, err := ms.DB("easy-games-db").C("sessions").RemoveAll(bson.M{"session_id": sId}); err != nil {
+		fmt.Println("Fail to delete session from mongoDB")
+		return err
+	}
+	return nil
 }

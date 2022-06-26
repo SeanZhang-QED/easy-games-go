@@ -1,10 +1,11 @@
 package models
 
 import (
-	"time"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Session struct {
-	Email  string 
-	LastActivity time.Time 
+	Id        bson.ObjectId `bson:"_id"`
+	SessionId string        `bson:"session_id"`
+	Email     string        `bson:"email"`
 }
