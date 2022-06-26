@@ -11,18 +11,17 @@ import (
 )
 
 func main() {
-    fmt.Println("started-service")
+	fmt.Println("started-service")
 
 	uh := handlers.NewUserHandler(getSession())
 
 	r := mux.NewRouter()
 
-    r.Handle("/game", http.HandlerFunc(handlers.GetGameHandler)).Methods("GET", "OPTIONS")
+	r.Handle("/game", http.HandlerFunc(handlers.GetGameHandler)).Methods("GET", "OPTIONS")
 	r.Handle("/signup", http.HandlerFunc(uh.SignUp)).Methods("POST", "OPTIONS")
 	r.Handle("/login", http.HandlerFunc(uh.Login)).Methods("POST", "OPTIONS")
-	
 
-    log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func getSession() *mgo.Session {

@@ -11,6 +11,6 @@ type Pagination struct {
 }
 
 type TwitchGameResponse struct {
-	Data []Game `json:"data"`
+	Data       []Game     `json:"data"`
 	Pagination Pagination `json:"pagination"`
 }
