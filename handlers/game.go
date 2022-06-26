@@ -18,7 +18,7 @@ func GetGameHandler(w http.ResponseWriter, r *http.Request) {
 	//Tells the front-end the type of response will be json
 	w.Header().Set("Content-Type", "application/json")
 
-	if r.Method == "OPTIONS" {
+	if r.Method == http.MethodOptions {
 		// If current requst is a preflight request,
         // only return the header, which has set above.
         return
