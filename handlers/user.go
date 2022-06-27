@@ -87,7 +87,7 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Cannot decode Login credentials from client %v\n", err)
 		return
 	}
-	exists, err := uh.checkUser(credentials.Email, credentials.Password)
+	exists, err := uh.verifyUser(credentials.Email, credentials.Password)
 	if err != nil {
 		http.Error(w, "Failed to read user from MongoDB", http.StatusInternalServerError)
 		fmt.Printf("Failed to read user from MongoDB %v\n", err)
@@ -180,7 +180,7 @@ func (uh UserHandler) addUser(u *models.User) (bool, error) {
 	return true, nil
 }
 
-func (uh UserHandler) checkUser(email string, password string) (bool, error) {
+func (uh UserHandler) verifyUser(email string, password string) (bool, error) {
 	// composite literal
 	var u models.User
 

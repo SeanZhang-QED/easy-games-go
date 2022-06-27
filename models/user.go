@@ -8,6 +8,7 @@ type User struct {
 	Password  string        `json:"password" bson:"password"`
 	FirstName string        `json:"first_name" bson:"first_name"`
 	LastName  string        `json:"last_name" bson:"last_name"`
+	FavoriteRecords []Item	`bson:"favorite_records"`
 }
 
 type Credentials struct {

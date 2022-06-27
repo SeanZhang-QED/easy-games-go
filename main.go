@@ -18,6 +18,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.Handle("/game", http.HandlerFunc(handlers.GetGameHandler)).Methods("GET", "OPTIONS")
+	r.Handle("/search", http.HandlerFunc(handlers.SearchItemByGameHandler)).Methods("GET", "OPTIONS")
 	r.Handle("/signup", http.HandlerFunc(uh.SignUp)).Methods("POST", "OPTIONS")
 	r.Handle("/login", http.HandlerFunc(uh.Login)).Methods("POST", "OPTIONS")
 	r.Handle("/logout", http.HandlerFunc(uh.Logout)).Methods("POST", "OPTIONS")
