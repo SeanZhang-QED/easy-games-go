@@ -43,8 +43,10 @@ func (uh UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Cannot decode user data from client %v\n", err)
 		return
 	}
-	// Step 2: password encrypt
-	bs, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
+	// Step 2: Encrypt the (user + password => unique) as password before save to the database
+	bsEmail := []byte(user.Email)
+	bsPassword := []byte(user.Password)
+	bs, err := bcrypt.GenerateFromPassword(append(bsEmail, bsPassword...), bcrypt.MinCost) //... is required, because append() is a variadic function that accepts an unlimited number of arguments.
 	if err != nil {
 		http.Error(w, "Failed to encrypt password", http.StatusInternalServerError)
 		fmt.Printf("Failed to encrypt password\n")
@@ -61,7 +63,7 @@ func (uh UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !success {
-		http.Error(w, "User already exists", http.StatusBadRequest)
+		http.Error(w, "User already exists", http.StatusConflict)
 		fmt.Println("User already exists")
 		return
 	}
@@ -168,6 +170,16 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh UserHandler) addUser(u *models.User) (bool, error) {
+	// check user existence
+	var users []models.User
+	if err := uh.session.DB("easy-games-db").C("users").Find(bson.M{"email": u.Email}).All(&users); err != nil {
+		fmt.Printf("Failed to check user existence from MongoDB %v\n", err)
+		return false, err
+	}
+	if len(users) != 0 {
+		return false, nil
+	}
+
 	// create bson ID
 	u.Id = bson.NewObjectId()
 
@@ -191,7 +203,9 @@ func (uh UserHandler) verifyUser(email string, password string) (bool, error) {
 	}
 
 	// does the entered password match the stored password?
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	bsEmail := []byte(email)
+	bsPassword := []byte(password)
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), append(bsEmail, bsPassword...))
 	if err != nil {
 		fmt.Printf("Wrong Password.")
 		return false, err
