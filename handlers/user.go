@@ -76,7 +76,7 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Authorization")
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 	if r.Method == http.MethodOptions {
 		return
 	}
@@ -89,18 +89,12 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Cannot decode Login credentials from client %v\n", err)
 		return
 	}
-	exists, err := uh.verifyUser(credentials.Email, credentials.Password)
+	firstName, err := uh.verifyUser(credentials.Email, credentials.Password)
 	if err != nil {
-		http.Error(w, "Failed to read user from MongoDB", http.StatusInternalServerError)
-		fmt.Printf("Failed to read user from MongoDB %v\n", err)
+		http.Error(w, "Error occured in verifying User's password", http.StatusUnauthorized)
+		fmt.Printf("Error occured in verifying User's password\n")
 		return
 	}
-	if !exists {
-		http.Error(w, "User doesn't exists or wrong password", http.StatusUnauthorized)
-		fmt.Printf("User doesn't exists or wrong password\n")
-		return
-	}
-
 	// Step 2: handle seesion cookie
 	sID := uuid.NewV4()
 	ck := &http.Cookie{
@@ -133,6 +127,16 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	// Step 4: return
 	w.WriteHeader(http.StatusOK) // 200
+	// return user's first name(prepared for frontend)
+	var loginResp models.LoginResponse
+	loginResp.Email = credentials.Email
+	loginResp.Name = firstName
+	loginRespJson, err := json.Marshal(loginResp) 
+	if err != nil {
+		http.Error(w, "Fail to create response for login success.", http.StatusInternalServerError)
+		return
+	}
+	w.Write(loginRespJson)
 	fmt.Printf("User Login successfully: %s.\n", credentials.Email)
 }
 
@@ -146,16 +150,18 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ck, err := r.Cookie("sessionId")
+	if err != nil {
+		http.Error(w, "Haven't logged in", http.StatusBadRequest)
+		fmt.Println("Fail to read cookie from http request")
+		return 
+	}
+	
 	loggedSession, err := session.AlreadyLoggedIn(w, r, uh.session)
 	if err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
-	} else if loggedSession == (models.Session{}) {
-		http.Error(w, "Haven't logged in", http.StatusBadRequest)
-		return
-	}
-
-	ck, _ := r.Cookie("sessionId")
+	} 
 	// delete the session
 	session.DeleteSessionBySId(uh.session, ck.Value)
 	// remove the cookie
@@ -192,14 +198,14 @@ func (uh UserHandler) addUser(u *models.User) (bool, error) {
 	return true, nil
 }
 
-func (uh UserHandler) verifyUser(email string, password string) (bool, error) {
+func (uh UserHandler) verifyUser(email string, password string) (string, error) {
 	// composite literal
 	var u models.User
 
 	// Fetch user
 	if err := uh.session.DB("easy-games-db").C("users").Find(bson.M{"email": email}).One(&u); err != nil {
 		fmt.Printf("Failed to fetch user from MongoDB %v\n", err)
-		return false, err
+		return "", err
 	}
 
 	// does the entered password match the stored password?
@@ -207,8 +213,8 @@ func (uh UserHandler) verifyUser(email string, password string) (bool, error) {
 	bsPassword := []byte(password)
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), append(bsEmail, bsPassword...))
 	if err != nil {
-		fmt.Printf("Wrong Password.")
-		return false, err
+		fmt.Println("Wrong Password.")
+		return "", err
 	}
-	return true, nil
+	return u.FirstName, nil
 }

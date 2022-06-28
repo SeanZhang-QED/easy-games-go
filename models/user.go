@@ -15,3 +15,8 @@ type Credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type LoginResponse struct {
+	Email    string `json:"email"`
+	Name	 string `json:"name"`
+}

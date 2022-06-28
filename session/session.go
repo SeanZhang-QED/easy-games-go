@@ -11,14 +11,9 @@ import (
 const MAX_AGE = 1 * 60 * 60
 
 func AlreadyLoggedIn(w http.ResponseWriter, req *http.Request, ms *mgo.Session) (models.Session, error) {
-	ck, err := req.Cookie("sessionId")
-	if err != nil {
-		fmt.Println("Fail to read cookie from http request.")
-		return models.Session{}, err
-	}
-
+	ck, _ := req.Cookie("sessionId")
 	var s models.Session
-	err = ms.DB("easy-games-db").C("sessions").Find(bson.M{"session_id": ck.Value}).One(&s)
+	err := ms.DB("easy-games-db").C("sessions").Find(bson.M{"session_id": ck.Value}).One(&s)
 
 	if err != nil {
 		fmt.Println("Fail to fetch session from mongoDB")
