@@ -16,6 +16,7 @@ func main() {
 	mgoSession := getSession()
 	uh := handlers.NewUserHandler(mgoSession)
 	fh := handlers.NewFavoriteHandler(mgoSession)
+	rh := handlers.NewRecommendHandler(mgoSession)
 
 	r := mux.NewRouter()
 
@@ -27,6 +28,7 @@ func main() {
 	r.Handle("/favorite", http.HandlerFunc(fh.SetFavorite)).Methods("POST", "OPTIONS")
 	r.Handle("/favorite", http.HandlerFunc(fh.UnsetFavorite)).Methods("DELETE", "OPTIONS")
 	r.Handle("/favorite", http.HandlerFunc(fh.GetFavorite)).Methods("GET", "OPTIONS")
+	r.Handle("/recommendation", http.HandlerFunc(rh.Recommendation)).Methods("GET", "OPTIONS")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 

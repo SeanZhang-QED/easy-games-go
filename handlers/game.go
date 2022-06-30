@@ -106,3 +106,4 @@ func getGameList(data string) ([]models.Game, error) {
 
 	return resp.Data, nil
 }
+

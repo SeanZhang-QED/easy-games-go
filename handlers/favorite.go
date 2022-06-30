@@ -54,7 +54,7 @@ func (fh FavoriteHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	}
 	// fmt.Printf("Received item: %v\n", favorite)
 	// step 3: insert/get the foavoirte item from the mongoDB
-	err = fh.checkItem(favorite.Item)	
+	err = checkItem(favorite.Item, fh.session)	
 	if err != nil {
 		http.Error(w, "Fail to check the item info in MongoDB", http.StatusInternalServerError)
 		fmt.Printf("Fail to check the item info in MongoDB: %v\n", err)
@@ -100,8 +100,7 @@ func (fh FavoriteHandler) UnsetFavorite(w http.ResponseWriter, r *http.Request) 
 		fmt.Printf("Cannot decode favorite Item from client %v\n", err)
 		return
 	}
-	fmt.Printf("Received item: %v\n", favorite)
-	err = fh.unsetFavoriteItem(loggedSession.Email, favorite.Item.Id)
+	err = fh.deleteFavoriteItem(loggedSession.Email, favorite.Item.Id)
 	if err != nil {
 		http.Error(w, "Fail to add the item info into User's favorite list", http.StatusInternalServerError)
 		fmt.Printf("Fail to add the item info into User's favorite list: %v\n", err)
@@ -134,7 +133,7 @@ func (fh FavoriteHandler) GetFavorite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// step 2: get a map of items, key is type, value is a list of Item
-	items, err := fh.getItemByType(loggedSession.Email)
+	items, err := fh.getFavoriteItemsByType(loggedSession.Email)
 	if err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		fmt.Printf("Fail to get the favorite items: %v", err)
@@ -154,30 +153,9 @@ func (fh FavoriteHandler) GetFavorite(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Get user's all favorite items successfully: %s.\n", loggedSession.Email) 
 }
 
-func (fh FavoriteHandler) checkItem(item models.Item) error {
-	var items []models.Item
-	err := fh.session.DB("easy-games-db").C("items").Find(bson.M{"_id": item.Id}).All(&items)
-	if err != nil {
-		fmt.Println("Fail to search the item info from Items document")
-		return err
-	}
-
-	if len(items) == 0 {
-		err = fh.session.DB("easy-games-db").C("items").Insert(item)
-		if err != nil {
-			fmt.Println("Fail to add the item into Items document")
-			return err
-		}
-		return nil
-	}
-	return nil
-}
-
 func (fh FavoriteHandler) setFavoriteItem(email string, itemId string) error {
-	var u models.User
-	err := fh.session.DB("easy-games-db").C("users").FindId(email).One(&u)
-	if err != nil {
-		fmt.Println("Fail to fetch the user info from users document")
+	u, err := getUserByEmail(email, fh.session)
+	if ; err != nil {
 		return err
 	}
 
@@ -196,11 +174,9 @@ func (fh FavoriteHandler) setFavoriteItem(email string, itemId string) error {
 	return nil
 }
 
-func (fh FavoriteHandler) unsetFavoriteItem(email string, itemId string) error {
-	var u models.User
-	err := fh.session.DB("easy-games-db").C("users").FindId(email).One(&u)
-	if err != nil {
-		fmt.Println("Fail to fetch the user info from users document")
+func (fh FavoriteHandler) deleteFavoriteItem(email string, itemId string) error {
+	u, err := getUserByEmail(email, fh.session)
+	if ; err != nil {
 		return err
 	}
 	if _ , ok := u.FavoriteRecords[itemId]; ok {
@@ -217,19 +193,17 @@ func (fh FavoriteHandler) unsetFavoriteItem(email string, itemId string) error {
 	return nil
 }
 
-func (fh FavoriteHandler) getItemByType(email string) (map[string][]models.Item, error) {
+func (fh FavoriteHandler) getFavoriteItemsByType(email string) (map[string][]models.Item, error) {
 	m := make(map[string][]models.Item)
 
 	// get the user 
-	var u models.User
-	err := fh.session.DB("easy-games-db").C("users").FindId(email).One(&u)
-	if err != nil {
-		fmt.Println("Fail to fetch the user info from users document")
-		return m, err
+	u, err := getUserByEmail(email, fh.session)
+	if ; err != nil {
+		return nil, err
 	}
 	// iterate the favorite recods map
 	for itemId := range u.FavoriteRecords {
-		item, err := fh.getItemByItemId(itemId)
+		item, err := getItemByItemId(itemId, fh.session)
 		if err != nil {
 			fmt.Println("Fail to fetch the item info by id")
 			return m, err
@@ -240,12 +214,37 @@ func (fh FavoriteHandler) getItemByType(email string) (map[string][]models.Item,
 	return m, nil
 }
 
-func (fh FavoriteHandler) getItemByItemId(itemId string) (models.Item, error) {
-	var curItem models.Item
-	err := fh.session.DB("easy-games-db").C("items").Find(bson.M{"_id": itemId}).One(&curItem)
+// Get the set of favoriteItem ids for given User
+func getFavoriteItemIds(email string, session *mgo.Session) (map[string]models.Void, error) {
+	u, err := getUserByEmail(email, session)
 	if err != nil {
-		fmt.Println("Fail to fetch the item info by id")
-		return models.Item{}, err
+		fmt.Println("Fail to get the User by email.")
+		return nil, err
 	}
-	return curItem, nil
+	return u.FavoriteRecords, nil
+}
+
+// Get favoriteItems's Game id for the given user.
+func getFavoriteGameIds(email string, session *mgo.Session) (map[string][]string, error) {
+	
+	// Step 1: get the user's favorite Item ids
+	itemIds, err := getFavoriteItemIds(email, session)
+	if err != nil {
+		fmt.Println("Fail to get the User's Favorite Items info from DB")
+		return nil, err
+	}
+	// Step 2: prepare the map
+	m := make(map[string][]string)
+	for _, itemType := range models.ItemType {
+		m[itemType] = []string{}
+	}
+	// Step 3: iterate the set and allocate the map(ItemType To a slice GameId)
+	for itemId := range itemIds {
+		curItem, err := getItemByItemId(itemId, session)
+		if err != nil {
+			return nil, err
+		}
+		m[curItem.ItemType] = append(m[curItem.ItemType], curItem.GameId)
+	}
+	return m, nil
 }

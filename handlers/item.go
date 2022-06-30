@@ -8,6 +8,8 @@ import (
 	"github.com/SeanZhang-QED/easy-games-go/config"
 	"github.com/SeanZhang-QED/easy-games-go/models"
 	"github.com/SeanZhang-QED/easy-games-go/twitch"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func SearchItemByGameHandler(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +63,8 @@ func SearchItemByGameHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(itemsJSON)
 }
 
+// Twitch Connection -----------------------
+
 func searchItemsByGameId(gameId string) (map[string][]models.Item, error){
 	typeToItemSlice := make(map[string][]models.Item)
 
@@ -101,6 +105,7 @@ func searchByType(gameId string, itemType string, limit int) ([]models.Item, err
 	}
 	for i := 0; i < len(items); i++ {
 		items[i].ItemType = itemType
+		items[i].GameId = gameId
 	}
 	return items, nil
 }
@@ -118,3 +123,36 @@ func getItemList(data string) ([]models.Item, error) {
 
 	return resp.Data, nil
 }
+
+// MongoDB Connections ----------------------
+
+func getItemByItemId(itemId string, session *mgo.Session) (models.Item, error) {
+	var curItem models.Item
+	err := session.DB("easy-games-db").C("items").Find(bson.M{"_id": itemId}).One(&curItem)
+	if err != nil {
+		fmt.Println("Fail to fetch the item info by id")
+		return models.Item{}, err
+	}
+	return curItem, nil
+}
+
+func checkItem(item models.Item, session *mgo.Session) error {
+	var items []models.Item
+	err := session.DB("easy-games-db").C("items").Find(bson.M{"_id": item.Id}).All(&items)
+	if err != nil {
+		fmt.Println("Fail to search the item info from Items document")
+		return err
+	}
+
+	if len(items) == 0 {
+		err = session.DB("easy-games-db").C("items").Insert(item)
+		if err != nil {
+			fmt.Println("Fail to add the item into Items document")
+			return err
+		}
+		return nil
+	}
+	return nil
+}
+
+

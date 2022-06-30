@@ -174,6 +174,8 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("User Logout successfully: %s.\n", loggedSession.Email)
 }
 
+// MongoDB Connections -------------------
+
 func (uh UserHandler) addUser(u *models.User) (bool, error) {
 	// check user existence
 	var users []models.User
@@ -195,22 +197,29 @@ func (uh UserHandler) addUser(u *models.User) (bool, error) {
 }
 
 func (uh UserHandler) verifyUser(email string, password string) (string, error) {
-	// composite literal
-	var u models.User
-
-	// Fetch user
-	if err := uh.session.DB("easy-games-db").C("users").FindId(email).One(&u); err != nil {
-		fmt.Printf("Failed to fetch user from MongoDB %v\n", err)
+	// get the user 
+	u, err := getUserByEmail(email, uh.session)
+	if ; err != nil {
 		return "", err
 	}
 
 	// does the entered password match the stored password?
 	bsEmail := []byte(email)
 	bsPassword := []byte(password)
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), append(bsEmail, bsPassword...))
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), append(bsEmail, bsPassword...))
 	if err != nil {
 		fmt.Println("Wrong Password.")
 		return "", err
 	}
 	return u.FirstName, nil
+}
+
+func getUserByEmail(email string, session *mgo.Session) (models.User, error) {
+	var u models.User
+	err := session.DB("easy-games-db").C("users").FindId(email).One(&u)
+	if err != nil {
+		fmt.Println("Fail to fetch the user info from users document")
+		return models.User{}, err
+	}
+	return u, nil
 }
