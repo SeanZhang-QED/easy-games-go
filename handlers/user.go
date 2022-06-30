@@ -11,7 +11,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // added session to our userController
@@ -152,7 +151,7 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	ck, err := r.Cookie("sessionId")
 	if err != nil {
-		http.Error(w, "Haven't logged in", http.StatusBadRequest)
+		http.Error(w, "Haven't logged in", http.StatusUnauthorized)
 		fmt.Println("Fail to read cookie from http request")
 		return 
 	}
@@ -178,16 +177,13 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (uh UserHandler) addUser(u *models.User) (bool, error) {
 	// check user existence
 	var users []models.User
-	if err := uh.session.DB("easy-games-db").C("users").Find(bson.M{"email": u.Email}).All(&users); err != nil {
+	if err := uh.session.DB("easy-games-db").C("users").FindId(u.Email).All(&users); err != nil {
 		fmt.Printf("Failed to check user existence from MongoDB %v\n", err)
 		return false, err
 	}
 	if len(users) != 0 {
 		return false, nil
 	}
-
-	// create bson ID
-	u.Id = bson.NewObjectId()
 
 	// store the user in mongodb
 	err := uh.session.DB("easy-games-db").C("users").Insert(u)
@@ -203,7 +199,7 @@ func (uh UserHandler) verifyUser(email string, password string) (string, error) 
 	var u models.User
 
 	// Fetch user
-	if err := uh.session.DB("easy-games-db").C("users").Find(bson.M{"email": email}).One(&u); err != nil {
+	if err := uh.session.DB("easy-games-db").C("users").FindId(email).One(&u); err != nil {
 		fmt.Printf("Failed to fetch user from MongoDB %v\n", err)
 		return "", err
 	}

@@ -1,11 +1,9 @@
 package models
 
-import "gopkg.in/mgo.v2/bson"
-
 var ItemType = [...]string{"STREAM", "CLIP", "VIDEO"} 
 
 type Item struct {
-	Id              string 		  `json:"id" bson:"_id"`   // automatically assigned to a document upon insert
+	Id              string 		  `json:"id" bson:"_id"`   
 	Title           string        `json:"title" bson:"title"`
 	Url             string        `json:"url,omitempty" bson:"url"`
 	ThumbnailUrl    string        `json:"thumbnail_url" bson:"thumbnail_url"`
@@ -13,10 +11,13 @@ type Item struct {
 	UserName 		string 		  `json:"user_name,omitempty" bson:"user_name"`
 	GameId          string        `json:"game_id" bson:"game_id"`
 	ItemType        string        `json:"item_type" bson:"item_type"`
-	Users			[]bson.ObjectId	`json:"-" bson:"liked_users"`
 }
 
 type TwitchItemResponse struct {
 	Data       []Item     `json:"data"`
 	Pagination Pagination `json:"pagination"`
+}
+
+type Favorite struct {
+	Item Item `json:"favorite"`
 }

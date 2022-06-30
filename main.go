@@ -13,7 +13,9 @@ import (
 func main() {
 	fmt.Println("started-service")
 
-	uh := handlers.NewUserHandler(getSession())
+	mgoSession := getSession()
+	uh := handlers.NewUserHandler(mgoSession)
+	fh := handlers.NewFavoriteHandler(mgoSession)
 
 	r := mux.NewRouter()
 
@@ -22,7 +24,9 @@ func main() {
 	r.Handle("/signup", http.HandlerFunc(uh.SignUp)).Methods("POST", "OPTIONS")
 	r.Handle("/login", http.HandlerFunc(uh.Login)).Methods("POST", "OPTIONS")
 	r.Handle("/logout", http.HandlerFunc(uh.Logout)).Methods("POST", "OPTIONS")
-
+	r.Handle("/favorite", http.HandlerFunc(fh.SetFavorite)).Methods("POST", "OPTIONS")
+	r.Handle("/favorite", http.HandlerFunc(fh.UnsetFavorite)).Methods("DELETE", "OPTIONS")
+	r.Handle("/favorite", http.HandlerFunc(fh.GetFavorite)).Methods("GET", "OPTIONS")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
