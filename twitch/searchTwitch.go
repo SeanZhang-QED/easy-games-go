@@ -49,12 +49,12 @@ func SearchByGameId(url string, gameId string, limit int) (string, error) {
 	client := http.Client{Timeout: time.Duration(1) * time.Second}
 
 	req, _ := http.NewRequest("GET", url, nil)
-	
-	q := req.URL.Query()          // Get a copy of the query values.
-	q.Add("game_id", gameId)       // Add a new value to the set.
+
+	q := req.URL.Query()     // Get a copy of the query values.
+	q.Add("game_id", gameId) // Add a new value to the set.
 	q.Add("first", strconv.Itoa(limit))
 	req.URL.RawQuery = q.Encode() // Encode and assign back to the original query.
-	
+
 	req.Header.Add("Authorization", config.TOKEN)
 	req.Header.Add("Client-Id", config.CLIENT_ID)
 

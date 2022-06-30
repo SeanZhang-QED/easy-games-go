@@ -130,7 +130,7 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var loginResp models.LoginResponse
 	loginResp.Email = credentials.Email
 	loginResp.Name = firstName
-	loginRespJson, err := json.Marshal(loginResp) 
+	loginRespJson, err := json.Marshal(loginResp)
 	if err != nil {
 		http.Error(w, "Fail to create response for login success.", http.StatusInternalServerError)
 		return
@@ -153,14 +153,14 @@ func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Haven't logged in", http.StatusUnauthorized)
 		fmt.Println("Fail to read cookie from http request")
-		return 
+		return
 	}
-	
+
 	loggedSession, err := session.AlreadyLoggedIn(w, r, uh.session)
 	if err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
-	} 
+	}
 	// delete the session
 	session.DeleteSessionBySId(uh.session, ck.Value)
 	// remove the cookie
@@ -197,9 +197,9 @@ func (uh UserHandler) addUser(u *models.User) (bool, error) {
 }
 
 func (uh UserHandler) verifyUser(email string, password string) (string, error) {
-	// get the user 
+	// get the user
 	u, err := getUserByEmail(email, uh.session)
-	if ; err != nil {
+	if err != nil {
 		return "", err
 	}
 

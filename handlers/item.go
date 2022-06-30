@@ -65,11 +65,11 @@ func SearchItemByGameHandler(w http.ResponseWriter, r *http.Request) {
 
 // Twitch Connection -----------------------
 
-func searchItemsByGameId(gameId string) (map[string][]models.Item, error){
+func searchItemsByGameId(gameId string) (map[string][]models.Item, error) {
 	typeToItemSlice := make(map[string][]models.Item)
 
 	var err error
-	for _ , itemType := range models.ItemType {
+	for _, itemType := range models.ItemType {
 		typeToItemSlice[itemType], err = searchByType(gameId, itemType, config.DEFAULT_SEARCH_LIMIT)
 		if err != nil {
 			fmt.Printf("Failed to search %s of a specific game from Twitch API %v. \n", itemType, err)
@@ -154,5 +154,3 @@ func checkItem(item models.Item, session *mgo.Session) error {
 	}
 	return nil
 }
-
-

@@ -37,13 +37,13 @@ func (fh FavoriteHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Haven't logged in", http.StatusUnauthorized)
 		fmt.Println("Fail to read cookie from http request")
-		return 
+		return
 	}
 	loggedSession, err := session.AlreadyLoggedIn(w, r, fh.session)
 	if err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
-	} 
+	}
 	// step 2: unmarshal the favorite item object from JSON
 	decoder := json.NewDecoder(r.Body)
 	var favorite models.Favorite
@@ -54,7 +54,7 @@ func (fh FavoriteHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	}
 	// fmt.Printf("Received item: %v\n", favorite)
 	// step 3: insert/get the foavoirte item from the mongoDB
-	err = checkItem(favorite.Item, fh.session)	
+	err = checkItem(favorite.Item, fh.session)
 	if err != nil {
 		http.Error(w, "Fail to check the item info in MongoDB", http.StatusInternalServerError)
 		fmt.Printf("Fail to check the item info in MongoDB: %v\n", err)
@@ -85,13 +85,13 @@ func (fh FavoriteHandler) UnsetFavorite(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		http.Error(w, "Haven't logged in", http.StatusUnauthorized)
 		fmt.Println("Fail to read cookie from http request")
-		return 
+		return
 	}
 	loggedSession, err := session.AlreadyLoggedIn(w, r, fh.session)
 	if err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
-	} 
+	}
 	// step 2: unmarshal the favorite item object from JSON
 	decoder := json.NewDecoder(r.Body)
 	var favorite models.Favorite
@@ -125,7 +125,7 @@ func (fh FavoriteHandler) GetFavorite(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Haven't logged in", http.StatusUnauthorized)
 		fmt.Println("Fail to read cookie from http request")
-		return 
+		return
 	}
 	loggedSession, err := session.AlreadyLoggedIn(w, r, fh.session)
 	if err != nil {
@@ -150,16 +150,16 @@ func (fh FavoriteHandler) GetFavorite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(itemsJSON)
-	fmt.Printf("Get user's all favorite items successfully: %s.\n", loggedSession.Email) 
+	fmt.Printf("Get user's all favorite items successfully: %s.\n", loggedSession.Email)
 }
 
 func (fh FavoriteHandler) setFavoriteItem(email string, itemId string) error {
 	u, err := getUserByEmail(email, fh.session)
-	if ; err != nil {
+	if err != nil {
 		return err
 	}
 
-	if _ , ok := u.FavoriteRecords[itemId]; ok {
+	if _, ok := u.FavoriteRecords[itemId]; ok {
 		fmt.Println("Already add the item as Favorite Item")
 		return nil
 	} else {
@@ -176,10 +176,10 @@ func (fh FavoriteHandler) setFavoriteItem(email string, itemId string) error {
 
 func (fh FavoriteHandler) deleteFavoriteItem(email string, itemId string) error {
 	u, err := getUserByEmail(email, fh.session)
-	if ; err != nil {
+	if err != nil {
 		return err
 	}
-	if _ , ok := u.FavoriteRecords[itemId]; ok {
+	if _, ok := u.FavoriteRecords[itemId]; ok {
 		delete(u.FavoriteRecords, itemId)
 		err = fh.session.DB("easy-games-db").C("users").UpdateId(email, bson.M{"$set": bson.M{"favorite_records": u.FavoriteRecords}})
 		if err != nil {
@@ -189,16 +189,16 @@ func (fh FavoriteHandler) deleteFavoriteItem(email string, itemId string) error 
 	} else {
 		fmt.Println("Item is not in the Favorite Item records")
 		return nil
-	}	
+	}
 	return nil
 }
 
 func (fh FavoriteHandler) getFavoriteItemsByType(email string) (map[string][]models.Item, error) {
 	m := make(map[string][]models.Item)
 
-	// get the user 
+	// get the user
 	u, err := getUserByEmail(email, fh.session)
-	if ; err != nil {
+	if err != nil {
 		return nil, err
 	}
 	// iterate the favorite recods map
@@ -226,7 +226,7 @@ func getFavoriteItemIds(email string, session *mgo.Session) (map[string]models.V
 
 // Get favoriteItems's Game id for the given user.
 func getFavoriteGameIds(email string, session *mgo.Session) (map[string][]string, error) {
-	
+
 	// Step 1: get the user's favorite Item ids
 	itemIds, err := getFavoriteItemIds(email, session)
 	if err != nil {
