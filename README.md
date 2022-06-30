@@ -14,3 +14,7 @@ A twitch based stream recommendation server coded by Golang.
 
 ## Code brief diagram
 ![code diagram](https://user-images.githubusercontent.com/66594541/176646519-df0ec1d7-a00c-4006-a3e7-dd34423c03c7.jpg)
+
+
+## APIs - postman api collection link
+https://www.getpostman.com/collections/bdaa61a62fad141adde4
