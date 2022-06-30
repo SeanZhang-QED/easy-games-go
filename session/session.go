@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const MAX_AGE = 1 * 60 * 60
+const MAX_AGE = 15 * 60
 
 func AlreadyLoggedIn(w http.ResponseWriter, req *http.Request, ms *mgo.Session) (models.Session, error) {
 	ck, _ := req.Cookie("sessionId")
