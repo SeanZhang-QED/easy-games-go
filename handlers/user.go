@@ -73,7 +73,8 @@ func (uh UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one Login request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Authorization")
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method == http.MethodOptions {
@@ -142,7 +143,8 @@ func (uh UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (uh UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one Log out request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Authorization")
 	w.Header().Set("Content-Type", "text/plain")
 	if r.Method == http.MethodOptions {

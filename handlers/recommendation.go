@@ -26,7 +26,8 @@ func NewRecommendHandler(s *mgo.Session) *RecommendHandler {
 func (rh RecommendHandler) Recommendation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one recommendation request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 

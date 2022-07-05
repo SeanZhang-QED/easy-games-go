@@ -24,7 +24,8 @@ func NewFavoriteHandler(s *mgo.Session) *FavoriteHandler {
 func (fh FavoriteHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one Set Favorite Item request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 
@@ -72,7 +73,8 @@ func (fh FavoriteHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 func (fh FavoriteHandler) UnsetFavorite(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one Delte Favorite Item request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "text/plain")
 
@@ -112,7 +114,8 @@ func (fh FavoriteHandler) UnsetFavorite(w http.ResponseWriter, r *http.Request) 
 func (fh FavoriteHandler) GetFavorite(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one Get Favorite Item List request")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://13.59.49.252")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 
