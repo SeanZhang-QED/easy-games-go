@@ -1,7 +1,9 @@
 # Easy Games
-A twitch based stream recommendation server coded by Golang.
+A twitch based stream recommendation server coded by Golang hosted on AWS.
 
-Click [here](http://13.59.49.252) to explore...
+<img width="1302" alt="A screenshot" src="https://user-images.githubusercontent.com/66594541/177723304-86c5a9ba-86c6-42e7-9e6a-1dd54f1f758f.png">
+
+[Click here to explore...](http://13.59.49.252)
 
 ## Features
 - User Log in/Log out/Register
@@ -12,7 +14,8 @@ Click [here](http://13.59.49.252) to explore...
 - Get user's all favorite items
 - Content based recommendation, recommend 
   - by user's history(favorite history)
-  - by default(topgames) 
+  - by default(topgames)
+- Data stored and managed by MongoDB
 
 ## Code brief diagram
 ![code diagram](https://user-images.githubusercontent.com/66594541/176646519-df0ec1d7-a00c-4006-a3e7-dd34423c03c7.jpg)
