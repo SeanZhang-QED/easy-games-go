@@ -1,9 +1,9 @@
 # Easy Games
 A twitch based stream recommendation server coded by Golang hosted on AWS.
 
-<img width="1302" alt="A screenshot" src="https://user-images.githubusercontent.com/66594541/177723304-86c5a9ba-86c6-42e7-9e6a-1dd54f1f758f.png">
-
 [Click here to explore...](http://13.59.49.252)
+
+<img width="1302" alt="A screenshot" src="https://user-images.githubusercontent.com/66594541/177723304-86c5a9ba-86c6-42e7-9e6a-1dd54f1f758f.png">
 
 ## Features
 - User Log in/Log out/Register
