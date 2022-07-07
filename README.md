@@ -22,3 +22,18 @@ Click [here](http://13.59.49.252) to explore...
 
 ## APIs - postman api collection link
 https://www.getpostman.com/collections/bdaa61a62fad141adde4
+
+## Notes:
+- `netstat` command
+```
+netstat -ln
+netstat -a
+```
+- screen - keep golang server long-runniung
+```
+screen -S session_name        # create session
+screen -r session_name        # restore session
+screen -ls                    # list the current running screen sessions
+screen -wipe session_name     # delete the session
+screen -X -S session_id quit  # kill the session
+```
