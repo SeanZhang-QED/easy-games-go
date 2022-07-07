@@ -17,10 +17,10 @@ A twitch based stream recommendation server coded by Golang hosted on AWS.
   - by default(topgames)
 - Data stored and managed by MongoDB
 
-## Code brief diagram
+## Brief diagram
 ![code diagram](https://user-images.githubusercontent.com/66594541/176646519-df0ec1d7-a00c-4006-a3e7-dd34423c03c7.jpg)
 
-## Frontend structure
+## Frontend structure - [Frontend project Repo](https://github.com/SeanZhang-QED/easy-games-react)
 ![Component Tree](https://user-images.githubusercontent.com/66594541/177716388-857b839d-32d1-45ae-a3c9-85a8ba3c8fb2.jpg)
 
 ## APIs - postman api collection link
